@@ -1,69 +1,91 @@
 'use client';
-import { useState } from 'react';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { useAuth } from '../../hooks/useAuth';
 import { useRouter } from 'next/navigation';
-import { auth } from '../../firebase/config';
 import Image from 'next/image';
+import { useEffect, useState } from 'react';
 
 export default function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const { user, signInWithGoogle, loading } = useAuth();
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
+  useEffect(() => {
+    if (user && !loading) {
+      router.push('/difficulty');
+    }
+  }, [user, loading, router]);
+
+  const handleLogin = async () => {
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      router.push('/difficulty'); // Changed from '/game' to '/difficulty'
-    } catch (err: any) {
-      setError(err.message);
+      setIsLoading(true);
+      await signInWithGoogle();
+    } catch (error) {
+      console.error('Login failed:', error);
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="relative h-screen w-full bg-yellow-100">
-      
-      
-      {/* Content */}
-      <div className="relative z-10 flex flex-col items-center justify-center h-full">
-        <div className="bg-yellow-300 p-8 rounded-3xl shadow-lg w-96">
-          <h1 className="text-3xl font-bold text-center mb-8">SIGN UP / LOGIN</h1>
-          
-          <form onSubmit={handleLogin} className="flex flex-col space-y-6">
-            <div className="flex flex-col space-y-2">
-              <label className="text-xl font-semibold">USERNAME</label>
-              <input 
-                type="email" 
-                value={email} 
-                onChange={(e) => setEmail(e.target.value)} 
-                className="p-3 rounded-lg border-2 border-yellow-400 focus:outline-none focus:border-yellow-500"
-              />
-            </div>
+    <div className="relative w-full min-h-screen bg-gradient-to-br from-blue-300 via-purple-300 to-pink-300 overflow-x-hidden">
+      <Image
+        src="/images/landing-bg.png"
+        alt="Background"
+        fill
+        priority
+        className="object-cover opacity-40"
+      />
 
-            <div className="flex flex-col space-y-2">
-              <label className="text-xl font-semibold">PASSWORD</label>
-              <input 
-                type="password" 
-                value={password} 
-                onChange={(e) => setPassword(e.target.value)} 
-                className="p-3 rounded-lg border-2 border-yellow-400 focus:outline-none focus:border-yellow-500"
-              />
-            </div>
+      {/* Animated blobs */}
+      <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-purple-400 to-transparent rounded-full blur-3xl opacity-30 animate-pulse"></div>
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-tl from-blue-400 to-transparent rounded-full blur-3xl opacity-30 animate-pulse"></div>
 
-            <button 
-              type="submit" 
-              className="bg-yellow-400 text-white py-3 px-8 rounded-lg text-xl font-bold hover:bg-yellow-500 transition-colors mt-4 self-center"
-            >
-              LOGIN
-            </button>
-          </form>
-
-          {error && <p className="text-red-500 text-center mt-4">{error}</p>}
-          <p className="text-center mt-4">
-            New user? <a href="/signup" className="text-yellow-600 hover:text-yellow-700">Signup</a>
-          </p>
+      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
+        <div className="text-6xl sm:text-7xl lg:text-9xl mb-6 sm:mb-8 lg:mb-12 animate-bounce" style={{ animationDuration: '2s' }}>
+          🍌
         </div>
+        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white drop-shadow-2xl mb-2 sm:mb-3 text-center">
+          Banana Trivia
+        </h1>
+        <p className="text-lg sm:text-xl lg:text-2xl font-bold text-white drop-shadow-lg mb-8 sm:mb-12 text-center">
+          Sign in to play & compete
+        </p>
+
+        <div className="card p-6 sm:p-10 lg:p-12 w-full max-w-md">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-gray-800 mb-6 sm:mb-8 text-center">
+            Welcome! 🎮
+          </h2>
+          
+          <button
+            onClick={handleLogin}
+            disabled={isLoading}
+            className="w-full p-4 sm:p-5 lg:p-6 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-black rounded-2xl text-base sm:text-lg lg:text-xl hover:scale-105 transition-all duration-300 shadow-xl border-2 border-white/50 disabled:opacity-50 disabled:scale-100 flex-center gap-3"
+          >
+            {isLoading ? (
+              <>
+                <div className="animate-spin">⚙️</div>
+                Signing in...
+              </>
+            ) : (
+              <>
+                <span>📧</span>
+                Sign in with Google
+              </>
+            )}
+          </button>
+
+          <div className="mt-6 sm:mt-8 p-4 sm:p-6 bg-blue-50 rounded-xl border-2 border-blue-200">
+            <p className="text-xs sm:text-sm lg:text-base text-gray-700 font-semibold">
+              ✨ Secure login • 🔒 Your data is safe • 🌐 No passwords needed
+            </p>
+          </div>
+        </div>
+
+        <button 
+          onClick={() => router.push('/')}
+          className="mt-6 sm:mt-8 p-3 sm:p-4 px-6 sm:px-10 bg-white/70 text-gray-800 rounded-2xl font-bold hover:scale-105 transition-transform border-4 border-white/80 text-sm sm:text-base"
+        >
+          ← Go Back
+        </button>
       </div>
     </div>
   );
