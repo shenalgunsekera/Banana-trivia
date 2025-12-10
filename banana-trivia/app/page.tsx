@@ -77,7 +77,7 @@ export default function Home() {
                 onClick={() => router.push('/difficulty')}
                 className="px-12 sm:px-16 md:px-20 py-4 sm:py-5 md:py-6 bg-gradient-to-r from-green-400 to-emerald-500 text-white font-black rounded-2xl text-lg sm:text-xl md:text-2xl lg:text-3xl hover:scale-110 transition-all duration-300 shadow-2xl border-4 border-white/80 drop-shadow-lg active:scale-95 whitespace-nowrap"
               >
-                <span className="inline-block"></span> Play Now <span className="inline-block"></span>
+                <span className="inline-block">🎮</span> Play Now <span className="inline-block">🎮</span>
               </button>
             ) : (
               <div className="w-full max-w-md space-y-3 sm:space-y-4">
@@ -103,7 +103,7 @@ export default function Home() {
           {/* Features Section */}
           <div className="text-center w-full pb-8 sm:pb-12 md:pb-16 flex flex-col items-center">
             <p className="text-white font-bold text-base sm:text-lg md:text-2xl lg:text-2xl drop-shadow-lg mb-4 sm:mb-6">
-               Features
+              ✨ Features
             </p>
             <div className="glass-effect p-6 sm:p-8 md:p-10 rounded-3xl border-2 border-white/50 w-full max-w-2xl">
               <p className="text-white font-semibold text-sm sm:text-base md:text-lg leading-relaxed">
