@@ -41,11 +41,9 @@ export default function Game() {
       setImageLoaded(false);
       setError(null);
       
-      const response = await axios.get('https://marcconrad.com/uob/banana/api.php');
-      
-      console.log('Full API Response:', response);
-      console.log('Question URL:', response.data.question);
-      console.log('Solution:', response.data.solution);
+      const response = await axios.get('https://marcconrad.com/uob/banana/api.php', {
+        timeout: 5000 // 5 second timeout
+      });
       
       if (response.data && response.data.question) {
         setQuestion(response.data.question);
@@ -53,11 +51,9 @@ export default function Game() {
         
         // Set a timeout in case image fails to load
         const timeout = setTimeout(() => {
-          if (!imageLoaded) {
-            setImageLoaded(true);
-            setIsLoading(false);
-          }
-        }, 3000);
+          setImageLoaded(true);
+          setIsLoading(false);
+        }, 2000); // Reduced from 3000 to 2000ms
         
         return () => clearTimeout(timeout);
       } else {
@@ -150,13 +146,12 @@ export default function Game() {
     }
   }, [user, loading, difficulty]);
 
-  // Timer effect
+  // Timer effect - FIXED: Don't end game, let gameOver be set only by submission
   useEffect(() => {
-    if (!gameOver && !loading && user) {
+    if (!gameOver && !loading && user && timer > 0) {
       const id = setInterval(() => {
         setTimer((t) => {
           if (t <= 1) {
-            setGameOver(true);
             clearInterval(id);
             return 0;
           }
@@ -167,6 +162,14 @@ export default function Game() {
       return () => clearInterval(id);
     }
   }, [gameOver, loading, user]);
+
+  // NEW: Handle time up - move to game over
+  useEffect(() => {
+    if (timer === 0 && !gameOver && !loading && user) {
+      setGameOver(true);
+      saveScore();
+    }
+  }, [timer, gameOver, loading, user]);
 
   // Loading screen
   if (loading || !user) {
@@ -233,6 +236,7 @@ export default function Game() {
                 <div className="text-center">
                   <div className="animate-spin text-5xl mb-4">🍌</div>
                   <p className="text-lg md:text-xl font-bold text-gray-600">Loading question...</p>
+                  <p className="text-sm text-gray-500 mt-2">This may take a moment</p>
                 </div>
               ) : error ? (
                 <div className="text-center">
@@ -257,7 +261,7 @@ export default function Game() {
                       setImageLoaded(true);
                       setIsLoading(false);
                     }}
-                    style={{ maxWidth: '100%', maxHeight: '250px' }}
+                    style={{ maxWidth: '100%', maxHeight: '250px', objectFit: 'contain' }}
                     className="drop-shadow-lg"
                   />
                 </div>
@@ -288,7 +292,7 @@ export default function Game() {
               <button 
                 onClick={handleSubmit}
                 disabled={!imageLoaded || !answer || isCorrect !== null}
-                className="bg-white text-transparent bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text px-12 py-3 rounded-full text-xl md:text-2xl font-black hover:scale-110 transition-transform disabled:opacity-50 disabled:scale-100 drop-shadow-lg border-4 border-white/80"
+                className="bg-black text-transparent bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text px-12 py-3 rounded-full text-xl md:text-2xl font-black hover:scale-110 transition-transform disabled:opacity-50 disabled:scale-100 drop-shadow-lg border-4 border-white/80"
               >
                 Submit
               </button>
