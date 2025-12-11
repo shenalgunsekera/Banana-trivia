@@ -1,11 +1,28 @@
 'use client';
+
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../hooks/useAuth';
 import Image from 'next/image';
+import BackgroundBlobs from '../../components/BackgroundBlobs';
+import { useEffect } from 'react';
 
 export default function DifficultySelect() {
   const router = useRouter();
   const { user, loading } = useAuth();
+
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = 'You will be logged out if you refresh or close this page!';
+      return e.returnValue;
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, []);
 
   if (loading || !user) {
     return (
@@ -59,13 +76,31 @@ export default function DifficultySelect() {
       <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-purple-400 to-transparent rounded-full blur-3xl opacity-20 animate-pulse"></div>
       <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-tl from-blue-400 to-transparent rounded-full blur-3xl opacity-20 animate-pulse"></div>
 
+      <BackgroundBlobs />
+
       <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
-        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white drop-shadow-2xl mb-2 sm:mb-4 text-center">
-          Choose Your Challenge
-        </h1>
-        <p className="text-lg sm:text-xl lg:text-2xl font-bold text-white drop-shadow-lg mb-8 sm:mb-12 lg:mb-16 text-center">
-          {user?.email}
-        </p>
+        {/* Header + Leaderboard Button */}
+        <div className="w-full max-w-5xl flex items-start justify-between gap-4 mb-6 sm:mb-8">
+          <div>
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white drop-shadow-2xl mb-2 sm:mb-4 text-center sm:text-left">
+              Choose Your Challenge
+            </h1>
+            <p className="text-lg sm:text-xl lg:text-2xl font-bold text-white drop-shadow-lg mb-2 text-center sm:text-left">
+              {user?.email}
+            </p>
+          </div>
+
+          {/* Leaderboard button (visible in header) */}
+          <div className="flex items-center gap-3 rounded-2xl w-50 font-bold items-center justify-center bg-gradient-to-r from-yellow-400 to-pink-400">
+            <button
+              onClick={() => router.push('/leaderboard')}
+              aria-label="View Leaderboard"
+              className="px-4 py-2 rounded-full text-gray-800  hover:shadow-lg transition-all"
+            >
+              View Leaderboard 🏆
+            </button>
+          </div>
+        </div>
 
         {/* Difficulty Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 w-full max-w-5xl mb-8 sm:mb-12 lg:mb-16">
@@ -73,35 +108,58 @@ export default function DifficultySelect() {
             <div
               key={diff.value}
               onClick={() => router.push(`/game?difficulty=${diff.value}`)}
-              className={`game-card bg-gradient-to-br ${diff.color} p-6 sm:p-8 lg:p-10 cursor-pointer hover:scale-110 transition-all duration-300`}
+              className={`game-card cursor-pointer transform hover:scale-105 transition-all duration-300 rounded-2xl p-6 sm:p-8 lg:p-10 bg-gradient-to-br ${diff.color} shadow-xl border-2 border-white/30`}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  router.push(`/game?difficulty=${diff.value}`);
+                }
+              }}
             >
               <div className="text-5xl sm:text-6xl lg:text-7xl mb-4 text-center animate-bounce">
                 {diff.emoji}
               </div>
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white text-center mb-2 sm:mb-3 drop-shadow-lg">
+              <p className="text-2xl sm:text-3xl lg:text-4xl font-black text-white text-center mb-2 sm:mb-3 drop-shadow-lg">
                 {diff.name}
-              </h2>
-              <p className="text-white font-bold text-center mb-3 sm:mb-4 drop-shadow-md text-sm sm:text-base">
+              </p>
+              <p className="text-white font-bold text-center mb-3 sm:mb-4 drop-shadow-md text-semibold sm:text-base">
                 {diff.icon}
               </p>
-              <p className="text-white font-semibold text-center drop-shadow-md mb-4 sm:mb-6 text-sm sm:text-base">
+              <p className="text-white font-semibold text-center drop-shadow-md mb-4 sm:mb-6 text-semibold sm:text-base">
                 {diff.description}
               </p>
-              <button className="w-full p-2 sm:p-3 lg:p-4 bg-white/90 text-transparent bg-gradient-to-r from-gray-700 to-gray-900 bg-clip-text font-black rounded-xl text-sm sm:text-base lg:text-lg hover:scale-105 transition-transform border-2 border-white/50">
-                Play {diff.name}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  router.push(`/game?difficulty=${diff.value}`);
+                }}
+                className="w-full p-2 sm:p-3 lg:p-4 bg-white/90 text-transparent bg-gradient-to-r from-gray-700 to-gray-900 bg-clip-text font-black rounded-xl text-sm sm:text-base lg:text-lg hover:scale-105 transition-transform border-2 border-white/50"
+                aria-label={`Play ${diff.name}`}
+              >
+                <p className="bg-white/90 text-transparent bg-gradient-to-r from-gray-700 to-gray-900 bg-clip-text font-black rounded-xl text-sm sm:text-base lg:text-lg hover:scale-105 transition-transform border-2 border-white/50">Play {diff.name}</p>
               </button>
             </div>
           ))}
         </div>
 
         {/* Back Button */}
-        <button 
+        <button
           onClick={() => router.push('/')}
           className="p-3 sm:p-4 px-6 sm:px-8 lg:px-12 bg-white/80 text-gray-800 rounded-2xl text-base sm:text-lg lg:text-xl font-black hover:scale-105 transition-transform border-4 border-white/80 drop-shadow-lg"
         >
           ← Back to Home
         </button>
       </div>
+
+      {/* Floating quick-access Leaderboard button (bottom-right) */}
+      <button
+        onClick={() => router.push('/leaderboard')}
+        aria-label="Open Leaderboard"
+        className="fixed right-6 bottom-6 z-50 px-4 py-3 rounded-full bg-white/95 shadow-2xl border border-white/60 font-bold hover:scale-105 transition-transform"
+      >
+        🏆 Leaderboard
+      </button>
     </div>
   );
 }

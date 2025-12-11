@@ -97,29 +97,29 @@ input:focus, button:focus, a:focus {
   outline: none;
 }
 
-/* Custom Button Styles */
-.btn-primary {
-  @apply px-6 py-3 font-black rounded-xl transition-all duration-300 transform hover:scale-105 active:scale-95 border-4 border-white/80 drop-shadow-lg;
-}
 
-.btn-secondary {
-  @apply px-6 py-2 font-bold rounded-lg transition-all duration-300 transform hover:scale-105 active:scale-95;
-}
 
-/* Input Styles */
+/* ============================================
+   INPUT STYLES
+   ============================================ */
+
 input[type="number"],
 input[type="text"],
-input[type="email"] {
-  @apply w-full p-4 text-lg rounded-xl border-4 border-white/80 focus:border-white focus:ring-4 focus:ring-white/50 font-bold shadow-lg backdrop-blur-sm bg-white/90 transition-all duration-300;
+input[type="email"],
+input[type="password"] {
+  @apply w-full p-4 sm:p-5 text-lg sm:text-xl rounded-xl border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 font-semibold shadow-md bg-white transition-all duration-300;
 }
 
-/* Card Styles */
+/* ============================================
+   CARD STYLES
+   ============================================ */
+
 .card {
-  @apply bg-white/90 backdrop-blur-md rounded-2xl shadow-xl border-4 border-white/50 transition-all duration-300;
+  @apply bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border-2 border-gray-200 transition-all duration-300;
 }
 
 .card:hover {
-  @apply shadow-2xl transform hover:scale-105;
+  @apply shadow-2xl transform hover:scale-105 border-gray-300;
 }
 
 /* Container Utilities */
@@ -149,7 +149,7 @@ input[type="email"] {
   }
 
   .glass-effect {
-    @apply bg-white/20 backdrop-blur-md border border-white/30;
+    @apply bg-white/20 backdrop-blur-md border-2 border-white/30;
   }
 
   .game-card {

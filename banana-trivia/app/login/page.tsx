@@ -1,92 +1,161 @@
 'use client';
+
+import Head from 'next/head';
+import { useEffect, useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
+import BackgroundBlobs from '../../components/BackgroundBlobs';
+import { getFirebaseErrorMessage } from '../../utils/validation';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../../firebase/config';
 
 export default function Login() {
-  const { user, signInWithGoogle, loading } = useAuth();
+  const { user, signInWithGoogle, loading: authLoading } = useAuth();
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
 
+  // local states
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false); // for email/password flows
+  const [error, setError] = useState<string>('');
+
+  // if user already logged in, redirect
   useEffect(() => {
-    if (user && !loading) {
+    if (user && !authLoading) {
       router.push('/difficulty');
     }
-  }, [user, loading, router]);
+  }, [user, authLoading, router]);
 
-  const handleLogin = async () => {
+
+
+  // Email / Password login
+  const handleEmailLogin = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    setError('');
+
+    if (!email?.trim()) return setError('Please enter your email address.');
+    if (!password) return setError('Please enter your password.');
+
+    setIsLoading(true);
     try {
-      setIsLoading(true);
-      await signInWithGoogle();
-    } catch (error) {
-      console.error('Login failed:', error);
+      await signInWithEmailAndPassword(auth, email.trim(), password);
+      router.push('/difficulty'); // immediate redirect on success
+    } catch (err: any) {
+      setError(getFirebaseErrorMessage(err) || (err?.message ?? 'Failed to sign in. Please try again.'));
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="relative w-full min-h-screen bg-gradient-to-br from-blue-300 via-purple-300 to-pink-300 overflow-x-hidden">
-      <Image
-        src="/images/landing-bg.png"
-        alt="Background"
-        fill
-        priority
-        className="object-cover opacity-40"
-      />
+    <>
+      <Head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&family=Poppins:wght@300;400;600&display=swap"
+          rel="stylesheet"
+        />
+      </Head>
 
-      {/* Animated blobs */}
-      <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-purple-400 to-transparent rounded-full blur-3xl opacity-30 animate-pulse"></div>
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-tl from-blue-400 to-transparent rounded-full blur-3xl opacity-30 animate-pulse"></div>
-
-      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
-        <div className="text-6xl sm:text-7xl lg:text-9xl mb-6 sm:mb-8 lg:mb-12 animate-bounce" style={{ animationDuration: '2s' }}>
-          🍌
+      <div
+        className="relative min-h-screen bg-gradient-to-br from-yellow-50 via-orange-50 to-pink-50 overflow-hidden flex items-center justify-center px-4"
+        style={{ fontFamily: "Quicksand, Poppins, system-ui, sans-serif" }}
+      >
+        {/* subtle background image */}
+        <div className="absolute inset-0 -z-20">
+          <Image src="/images/landing-bg.png" alt="Background" fill priority className="object-cover opacity-10" />
         </div>
-        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white drop-shadow-2xl mb-2 sm:mb-3 text-center">
-          Banana Trivia
-        </h1>
-        <p className="text-lg sm:text-xl lg:text-2xl font-bold text-white drop-shadow-lg mb-8 sm:mb-12 text-center">
-          Sign in to play & compete
-        </p>
 
-        <div className="card p-6 sm:p-10 lg:p-12 w-full max-w-md">
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-gray-800 mb-6 sm:mb-8 text-center">
-            Welcome! 🎮
-          </h2>
-          
-          <button
-            onClick={handleLogin}
-            disabled={isLoading}
-            className="w-full p-4 sm:p-5 lg:p-6 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-black rounded-2xl text-base sm:text-lg lg:text-xl hover:scale-105 transition-all duration-300 shadow-xl border-2 border-white/50 disabled:opacity-50 disabled:scale-100 flex-center gap-3"
-          >
-            {isLoading ? (
-              <>
-                <div className="animate-spin">⚙️</div>
-                Signing in...
-              </>
-            ) : (
-              <>
-                <span>📧</span>
-                Sign in with Google
-              </>
+        {/* decorative blobs */}
+        <BackgroundBlobs opacity={10} showThirdBlob={true} />
+
+        <div className="relative z-10 w-full max-w-lg items-center">
+          <div className="rounded-3xl bg-white/80 backdrop-blur-xl border border-white/60 shadow-2xl p-10 justify-items-center " >
+
+            {/* header */}
+            <div className="flex flex-col items-center text-center gap-3 mb-6">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-yellow-300 to-pink-300 flex items-center justify-center shadow-md">
+                <span className="text-white text-3xl font-bold">🍌</span>
+              </div>
+              <p className="text-3xl font-bold text-gray-800">Welcome back!</p>
+              <p className="text-gray-600 text-sm font-semibold">Sign in to continue</p>
+            </div>
+
+            {/* Email/Password Form */}
+            <form onSubmit={handleEmailLogin} className="items-center justify-center space-x-7 mt-4 max-w-100">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700">Email</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  className="mt-2 w-full px-4 py-3 rounded-2xl border-2 border-transparent
+                    focus:outline-none focus:ring-4 focus:ring-yellow-200 focus:border-yellow-300
+                    bg-white shadow-sm text-sm font-medium placeholder-gray-400"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700">Password</label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Your password"
+                  className="mt-2 w-full px-4 py-3 rounded-2xl border-2 border-transparent
+                    focus:outline-none focus:ring-4 focus:ring-pink-200 focus:border-pink-300
+                    bg-white shadow-sm text-sm font-medium placeholder-gray-400"
+                />
+              </div>
+
+              <div className=" mt-4 flex justify-center rounded-2xl">
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-30 py-3 rounded-full font-bold text-lg transition-all duration-150 active:scale-95 hover:scale-[1.02] disabled:opacity-60
+                  bg-gradient-to-r from-yellow-400 via-orange-300 to-pink-300 text-white shadow-xl"
+              >
+                {isLoading ? 'Signing in...' : 'Sign in'}
+              </button>
+              </div>
+            </form>
+
+            {/* OR divider */}
+            <div className="my-5 flex items-center gap-3">
+              <hr className="flex-1 border-t border-gray-200" />
+              <span className="text-xs text-gray-500">or</span>
+              <hr className="flex-1 border-t border-gray-200" />
+            </div>
+
+            
+
+            {/* Error message */}
+            {error && (
+              <div className="mt-4 text-center text-sm text-red-700 bg-red-50 border border-red-100 p-3 rounded-xl font-semibold">
+                {error}
+              </div>
             )}
-          </button>
 
-          <div className="mt-6 sm:mt-8 p-4 sm:p-6 bg-blue-50 rounded-xl border-2 border-blue-200">
-            <p className="text-xs sm:text-sm lg:text-base text-gray-700 font-semibold">
-              ✨ Secure login • 🔒 Your data is safe • 🌐 No passwords needed
-            </p>
+            {/* Links */}
+            <div className="mt-6 text-center text-sm text-gray-700">
+              Don't have an account?{' '}
+              <a href="/signup" className="text-pink-500 font-semibold underline">Create one</a>
+            </div>
+
+            <div className="mt-4 flex justify-center r">
+              <button
+                onClick={() => router.push('/')}
+                className="btn-primary"
+              >
+                ← Go Back
+              </button>
+            </div>
+
           </div>
         </div>
-
-        <button 
-          onClick={() => router.push('/')}
-          className="mt-6 sm:mt-8 p-3 sm:p-4 px-6 sm:px-10 bg-white/70 text-gray-800 rounded-2xl font-bold hover:scale-105 transition-transform border-4 border-white/80 text-sm sm:text-base"
-        >
-          ← Go Back
-        </button>
       </div>
-    </div>
+    </>
   );
 }
